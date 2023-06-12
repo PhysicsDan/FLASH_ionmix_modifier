@@ -114,16 +114,25 @@ class parse_ionmix4:
     def output_to_file(self: object, filename: str):
         # open the output file
         with open(filename, "w") as fp:
+            # write the meta data
             fp.writelines(self.metadata)
+            # write the temperature arr
+            self.numpy_arr_to_cn4(fp, self.temp)
+            # write the number density arr
+            self.numpy_arr_to_cn4(fp, self.dens)
 
             # now need to write the tables
             for tt in self.table_types:
                 # some formatting to make it look like a cn4 file
-                out = np.char.mod("%.6E", self.tables[tt].flatten())
-                out = [
-                    "".join(out[i * 4 : (i + 1) * 4]) + "\n"
-                    for i in range(int(out.size / 4) + 1)
-                ]
-                if len(out[-1].strip()) == 0:
-                    out.pop()
-                fp.writelines(out)
+                arr_out = self.tables[tt].flatten()
+                self.numpy_arr_to_cn4(fp, arr_out)
+
+    def numpy_arr_to_cn4(self, fp, arr: np.array):
+        out = np.char.mod("%.6E", arr)
+        out = [
+            "".join(out[i * 4 : (i + 1) * 4]) + "\n"
+            for i in range(int(out.size / 4) + 1)
+        ]
+        if len(out[-1].strip()) == 0:
+            out.pop()
+        fp.writelines(out)
